@@ -4,6 +4,9 @@ using STRINGS;
 using System.Collections.Generic;
 using UnityEngine;
 using System.Linq;
+using Newtonsoft.Json;
+using System.IO;
+using System.Reflection;
 
 namespace ArchipelagoNotIncluded
 {
@@ -754,12 +757,6 @@ namespace ArchipelagoNotIncluded
         };
         public static Dictionary<string, List<string>> DLCSciences;
         public static Dictionary<string, List<string>> SharedSciences;
-        private static string DequeueAndLog(int i, Queue<string> queue)
-        {
-            string s = queue.Dequeue();
-            Debug.Log($"{i} - {s}");
-            return s;
-        }
 
         [HarmonyPatch(typeof(Techs))]
         [HarmonyPatch("Init")]
@@ -767,11 +764,19 @@ namespace ArchipelagoNotIncluded
         {
             public static bool Prefix(Techs __instance)
             {
+                DirectoryInfo modDirectory = new DirectoryInfo(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location));
+
+                //string tempCsv = "";
                 List<string> technologies = new List<string>();
                 foreach(KeyValuePair<string, List<string>> pair in Sciences)
                 {
                     technologies.AddRange(pair.Value);
+                    //for(int i = 0; i < pair.Value.Count; i++)
+                    //{
+                    //    tempCsv += $"{pair.Key} - {i + 1},{pair.Value[i]};";
+                    //}
                 }
+                //System.IO.File.WriteAllText("", tempCsv);
                 technologies.Shuffle();
                 
                 foreach(KeyValuePair<string, List<string>> pair in Sciences)

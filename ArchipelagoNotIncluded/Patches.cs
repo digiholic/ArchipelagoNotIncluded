@@ -7,6 +7,7 @@ using System.Linq;
 using Newtonsoft.Json;
 using System.IO;
 using System.Reflection;
+using static SeedProducer;
 
 namespace ArchipelagoNotIncluded
 {
@@ -765,18 +766,19 @@ namespace ArchipelagoNotIncluded
             public static bool Prefix(Techs __instance)
             {
                 DirectoryInfo modDirectory = new DirectoryInfo(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location));
+                APSeedInfo info = new APSeedInfo();
+                info.AP_seed = "0";
+                info.AP_slotName = "test";
+                info.technologies = Sciences;
+                string defaultSettings = JsonConvert.SerializeObject(info, Formatting.Indented);
+                string path = Path.Combine(modDirectory.FullName, "vanilla-science.json").Trim();
+                File.WriteAllText(path, defaultSettings);
 
-                //string tempCsv = "";
                 List<string> technologies = new List<string>();
                 foreach(KeyValuePair<string, List<string>> pair in Sciences)
                 {
                     technologies.AddRange(pair.Value);
-                    //for(int i = 0; i < pair.Value.Count; i++)
-                    //{
-                    //    tempCsv += $"{pair.Key} - {i + 1},{pair.Value[i]};";
-                    //}
                 }
-                //System.IO.File.WriteAllText("", tempCsv);
                 technologies.Shuffle();
                 
                 foreach(KeyValuePair<string, List<string>> pair in Sciences)

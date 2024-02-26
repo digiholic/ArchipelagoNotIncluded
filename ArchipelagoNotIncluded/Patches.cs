@@ -766,7 +766,7 @@ namespace ArchipelagoNotIncluded
             public static bool Prefix(Techs __instance)
             {
                 DirectoryInfo modDirectory = new DirectoryInfo(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location));
-                APSeedInfo info = new APSeedInfo();
+                APSeedInfo info = null;
                 foreach (FileInfo jsonFile in modDirectory.EnumerateFiles("*.json").OrderByDescending(f => f.LastWriteTime))
                 {
                     Debug.Log(jsonFile.FullName);
@@ -783,42 +783,15 @@ namespace ArchipelagoNotIncluded
                     }
                 }
 
-                //APSeedInfo info = new APSeedInfo();
-                //info.AP_seed = "0";
-                //info.AP_slotName = "test";
-                //info.technologies = Sciences;
-                //string defaultSettings = JsonConvert.SerializeObject(info, Formatting.Indented);
-                //string path = Path.Combine(modDirectory.FullName, "vanilla-science.json").Trim();
-                //File.WriteAllText(path, defaultSettings);
+                //If there is no info, run the normal tech init function
+                if (info == null) return false;
 
-                /**
-                List<string> technologies = new List<string>();
-                foreach(KeyValuePair<string, List<string>> pair in Sciences)
-                {
-                    technologies.AddRange(pair.Value);
-                }
-                technologies.Shuffle();
-                
-                foreach(KeyValuePair<string, List<string>> pair in Sciences)
-                {
-                    Debug.Log($"Generating research for {pair.Key}, ({technologies.Take(pair.Value.Count).Join(s=>s, ",")})");
-                    new Tech(pair.Key, technologies.Take(pair.Value.Count).ToList(), __instance);
-                    technologies.RemoveRange(0, pair.Value.Count);
-                }
-                */
                 foreach(KeyValuePair<string, List<string>> pair in info.technologies)
                 {
                     Debug.Log($"Generating research for {pair.Key}, ({pair.Value.Join(s => s, ",")})");
                     new Tech(pair.Key, pair.Value, __instance);
                 }
-                //Base game sciences remain unchanged
-                /**
-                foreach (KeyValuePair<string, List<string>> pair in BaseGameSciences)
-                {
-                    Debug.Log($"Generating research for {pair.Key}, ({technologies.Take(pair.Value.Count).Join(s => s, ",")})");
-                    new Tech(pair.Key, pair.Value, __instance);
-                }
-                */
+                
                 return true;
             }
         }

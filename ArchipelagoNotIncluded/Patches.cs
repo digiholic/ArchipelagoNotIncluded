@@ -784,7 +784,11 @@ namespace ArchipelagoNotIncluded
                 }
 
                 //If there is no info, run the normal tech init function
-                if (info == null) return false;
+                if (info == null)
+                {
+                    Debug.Log("No mod json could be loaded. Skipping mod override");
+                    return true;
+                }
 
                 foreach(KeyValuePair<string, List<string>> pair in info.technologies)
                 {
@@ -792,7 +796,7 @@ namespace ArchipelagoNotIncluded
                     new Tech(pair.Key, pair.Value, __instance);
                 }
                 
-                return true;
+                return false;
             }
         }
     }

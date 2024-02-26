@@ -767,13 +767,31 @@ namespace ArchipelagoNotIncluded
             {
                 DirectoryInfo modDirectory = new DirectoryInfo(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location));
                 APSeedInfo info = new APSeedInfo();
-                info.AP_seed = "0";
-                info.AP_slotName = "test";
-                info.technologies = Sciences;
-                string defaultSettings = JsonConvert.SerializeObject(info, Formatting.Indented);
-                string path = Path.Combine(modDirectory.FullName, "vanilla-science.json").Trim();
-                File.WriteAllText(path, defaultSettings);
+                foreach (FileInfo jsonFile in modDirectory.EnumerateFiles("*.json").OrderByDescending(f => f.LastWriteTime))
+                {
+                    Debug.Log(jsonFile.FullName);
+                    try
+                    {
+                        string json = File.ReadAllText(jsonFile.FullName);
+                        info = JsonConvert.DeserializeObject<APSeedInfo>(json);
+                        break;
+                    }
+                    catch
+                    {
+                        Debug.LogWarning($"Failed to parse JSON file {jsonFile.FullName}");
+                        continue;
+                    }
+                }
 
+                //APSeedInfo info = new APSeedInfo();
+                //info.AP_seed = "0";
+                //info.AP_slotName = "test";
+                //info.technologies = Sciences;
+                //string defaultSettings = JsonConvert.SerializeObject(info, Formatting.Indented);
+                //string path = Path.Combine(modDirectory.FullName, "vanilla-science.json").Trim();
+                //File.WriteAllText(path, defaultSettings);
+
+                /**
                 List<string> technologies = new List<string>();
                 foreach(KeyValuePair<string, List<string>> pair in Sciences)
                 {
@@ -787,7 +805,12 @@ namespace ArchipelagoNotIncluded
                     new Tech(pair.Key, technologies.Take(pair.Value.Count).ToList(), __instance);
                     technologies.RemoveRange(0, pair.Value.Count);
                 }
-
+                */
+                foreach(KeyValuePair<string, List<string>> pair in info.technologies)
+                {
+                    Debug.Log($"Generating research for {pair.Key}, ({pair.Value.Join(s => s, ",")})");
+                    new Tech(pair.Key, pair.Value, __instance);
+                }
                 //Base game sciences remain unchanged
                 /**
                 foreach (KeyValuePair<string, List<string>> pair in BaseGameSciences)

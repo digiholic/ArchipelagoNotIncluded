@@ -8,6 +8,7 @@ using Newtonsoft.Json;
 using System.IO;
 using System.Reflection;
 using static SeedProducer;
+using System;
 
 namespace ArchipelagoNotIncluded
 {
@@ -209,12 +210,10 @@ namespace ArchipelagoNotIncluded
                 "SodaFountain",
                 "GasCargoBayCluster"
             }},
-			/** This is called something different in spaced out but has the same tech in it
-			{"AdvancedResourceExtraction", new List<string>()
+			{"AdvancedResourceExtraction", new List<string>()  //Base Game
 			{
 				"NoseconeHarvest"
 			}},
-			*/
 			{"PowerRegulation", new List<string>()
             {
                 "BatteryMedium",
@@ -540,7 +539,6 @@ namespace ArchipelagoNotIncluded
                 "LogicGateMultiplexer",
                 "LogicGateDemultiplexer"
             }},
-			/** I might have missed this one in my screenshot. Double check
 			{"SkyDetectors", new List<string>()
 			{
 				CometDetectorConfig.ID,
@@ -548,7 +546,6 @@ namespace ArchipelagoNotIncluded
 				"ClusterTelescopeEnclosed",
 				"AstronautTrainingCenter"
 			}},
-			*/
 			{"TravelTubes", new List<string>()
             {
                 "TravelTubeEntrance",
@@ -577,46 +574,45 @@ namespace ArchipelagoNotIncluded
                 "RailGun",
                 "LandingBeacon"
             }},
-			/** All appear to be base game exclusive
-			{"BasicRocketry", new List<string>()
+			{"BasicRocketry", new List<string>() //Base Game
 			{
 				"CommandModule",
 				"SteamEngine",
 				"ResearchModule",
 				"Gantry"
 			}},
-			{"CargoI", new List<string>()
+			{"CargoI", new List<string>() //Base Game
 			{
 				"CargoBay"
 			}},
-			{"CargoII", new List<string>()
+			{"CargoII", new List<string>() //Base Game
 			{
 				"LiquidCargoBay",
 				"GasCargoBay"
 			}},
-			{"CargoIII", new List<string>()
+			{"CargoIII", new List<string>() //Base Game
 			{
 				"TouristModule",
 				"SpecialCargoBay"
 			}},
-			{"EnginesI", new List<string>()
+			{"EnginesI", new List<string>() //Base Game
 			{
 				"SolidBooster",
 				"MissionControl"
 			}},
-			{"EnginesII", new List<string>()
+			{"EnginesII", new List<string>() //Base Game
 			{
 				"KeroseneEngine",
 				"LiquidFuelTank",
 				"OxidizerTank"
 			}},
-			{"EnginesIII", new List<string>()
+			{"EnginesIII", new List<string>() //Base Game
 			{
 				"OxidizerTankLiquid",
 				"OxidizerTankCluster",
 				"HydrogenEngine"
 			}},
-			{"Jetpacks", new List<string>()
+			{"Jetpacks", new List<string>() //Base Game
 			{
 				"JetSuit",
 				"JetSuitMarker",
@@ -625,7 +621,6 @@ namespace ArchipelagoNotIncluded
 				"MissileFabricator",
 				"MissileLauncher"
 			}},
-			*/
 			{"SolidTransport", new List<string>()
             {
                 "SolidConduitInbox",
@@ -756,8 +751,16 @@ namespace ArchipelagoNotIncluded
                 "NoseconeHarvest"
             }}
         };
-        public static Dictionary<string, List<string>> DLCSciences;
-        public static Dictionary<string, List<string>> SharedSciences;
+
+        public static List<string> PreUnlockedTech = new List<string>()
+        {
+            "BetaResearchPoint",
+            "DeltaResearchPoint",
+            "OrbitalResearchPoint",
+            "ConveyorOverlay",
+            "AutomationOverlay",
+            "SuitsOverlay"
+        };
 
         [HarmonyPatch(typeof(Techs))]
         [HarmonyPatch("Init")]
@@ -776,8 +779,9 @@ namespace ArchipelagoNotIncluded
                         info = JsonConvert.DeserializeObject<APSeedInfo>(json);
                         break;
                     }
-                    catch
+                    catch (Exception e)
                     {
+                        Debug.LogException(e);
                         Debug.LogWarning($"Failed to parse JSON file {jsonFile.FullName}");
                         continue;
                     }
@@ -790,11 +794,23 @@ namespace ArchipelagoNotIncluded
                     return true;
                 }
 
-                foreach(KeyValuePair<string, List<string>> pair in info.technologies)
+                foreach (KeyValuePair<string, List<string>> pair in info.technologies)
                 {
                     Debug.Log($"Generating research for {pair.Key}, ({pair.Value.Join(s => s, ",")})");
                     new Tech(pair.Key, pair.Value, __instance);
                 }
+
+                foreach (KeyValuePair<string, List<string>> pair in Sciences)
+                {
+                    if (!info.technologies.ContainsKey(pair.Key))
+                    {
+                        Debug.Log($"Generating Default Research for {pair.Key}, ({pair.Value.Join(s => s, ",")})");
+                        new Tech(pair.Key, pair.Value.ToList(), __instance);
+                    }
+                }
+
+                Tech preUnlockedTechs = new Tech("PreUnlockedTechs", PreUnlockedTech, __instance);
+                Db.Get().Techs.resources.Add(preUnlockedTechs);
                 
                 return false;
             }
